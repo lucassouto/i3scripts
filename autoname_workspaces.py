@@ -95,7 +95,7 @@ WINDOW_ICONS = {
     'robo3t': fa.icons['database'],
     'slack': fa.icons['slack'],
     'slic3r.pl': fa.icons['cube'],
-    'spotify': fa.icons['music'],  # could also use the 'spotify' icon
+    'spotify': fa.icons['spotify'],  # could also use the 'spotify' icon
     'steam': fa.icons['steam'],
     'subl': fa.icons['file-alt'],
     'subl3': fa.icons['file-alt'],
@@ -142,6 +142,19 @@ def icon_for_window(window):
     return DEFAULT_ICON
 
 
+def container_names_for_window(window):
+    # Try all window classes and use the first one we have an icon for
+    classes = xprop(window.window, 'WM_CLASS')
+    if classes != None and len(classes) > 0:
+        for cls in classes:
+            cls = cls.lower()  # case-insensitive matching
+            if cls in WINDOW_ICONS:
+                return cls
+    logging.info(
+        'No names available for window with classes: %s' % str(classes))
+    return '*'
+
+
 # renames all workspaces based on the windows present
 # also renumbers them in ascending order, with one gap left between monitors
 # for example: workspace numbering on two monitors: [1, 2, 3], [5, 6]
@@ -155,6 +168,7 @@ def rename_workspaces(i3, icon_list_format='default'):
         name_parts = parse_workspace_name(workspace.name)
         icon_list = [icon_for_window(w) for w in workspace.leaves()]
         new_icons = format_icon_list(icon_list, icon_list_format)
+        window_names = [container_names_for_window(w) for w in workspace.leaves()]
 
         # As we enumerate, leave one gap in workspace numbers between each monitor.
         # This leaves a space to insert a new one later.
@@ -167,8 +181,8 @@ def rename_workspaces(i3, icon_list_format='default'):
         n += 1
 
         new_name = construct_workspace_name(
-            NameParts(
-                num=new_num, shortname=name_parts.shortname, icons=new_icons))
+            NameParts(num=new_num, shortname=window_names, icons=new_icons)
+        )
         if workspace.name == new_name:
             continue
         i3.command(

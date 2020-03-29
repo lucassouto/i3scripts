@@ -28,14 +28,11 @@ def parse_workspace_name(name):
 # by concatenating them together.
 def construct_workspace_name(parts):
     new_name = str(parts.num)
-    if parts.shortname or parts.icons:
+    if parts.shortname and parts.icons:
         new_name += ':'
 
-        if parts.shortname:
-            new_name += parts.shortname
-
-        if parts.icons:
-            new_name += ' ' + parts.icons
+        for index, name in enumerate(parts.shortname):
+            new_name += '{} {} '.format(parts.icons[index], name)
 
     return new_name
 
@@ -74,7 +71,7 @@ def _encode_base_10_number(n: int, symbols: str) -> str:
 def format_icon_list(icon_list, icon_list_format='default'):
     if icon_list_format.lower() == 'default':
         # Default (no formatting)
-        return ' '.join(icon_list)
+        return icon_list
 
     elif icon_list_format.lower() == 'mathematician':
         # Mathematician mode
